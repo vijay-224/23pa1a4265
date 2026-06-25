@@ -322,8 +322,6 @@ new-notification
 * Pagination support for scalable notification retrieval.
 * Real-time notification delivery using Socket.IO and WebSockets.
 
-# Notification System Design
-
 # Stage 2 – Database Design
 
 ## Database Selection
@@ -529,8 +527,6 @@ db.notifications.deleteOne({
 
 MongoDB is well suited for the notification platform due to its document-oriented architecture, high write performance, and horizontal scalability. By combining efficient indexing, pagination, projection, caching, and sharding, the system can continue to deliver fast and reliable notification services even as the number of students and notifications grows significantly.
 
-# Notification System Design
-
 # Stage 3 – Query Analysis and Optimization
 
 ## Query Analysis
@@ -725,8 +721,6 @@ The index allows the database to:
 # Conclusion
 
 The original SQL query is functionally correct but not optimized for large-scale systems. Replacing `SELECT *` with explicit column selection and introducing appropriate composite indexes significantly improves query performance. These optimizations reduce disk I/O, eliminate unnecessary sorting, and enable the notification system to scale efficiently while maintaining fast response times as the volume of data increases.
-
-# Notification System Design
 
 # Stage 4 – Performance Optimization with Redis and Socket.IO
 
@@ -944,7 +938,6 @@ Integrating **MySQL**, **Redis**, and **Socket.IO** creates a high-performance a
 
 This architecture ensures low-latency responses, minimizes database load, and delivers a responsive user experience, making the notification system capable of efficiently supporting thousands of concurrent users and millions of notifications.
 
-# Notification System Design
 
 # Stage 5 – Scalable Notification Processing
 
@@ -1122,8 +1115,6 @@ Integrating **RabbitMQ** with **Socket.IO** enables a scalable, reliable, and hi
 The Notification API focuses solely on validating requests and persisting notification data, while RabbitMQ manages asynchronous processing and worker coordination. Background workers handle notification delivery independently, ensuring that API responsiveness remains high even under heavy traffic.
 
 This architecture supports large-scale deployments by providing reliable message processing, fault tolerance through retry and Dead Letter Queues, and seamless horizontal scaling for thousands of concurrent users.
-
-# Notification System Design
 
 # Stage 6 – Priority Inbox
 
