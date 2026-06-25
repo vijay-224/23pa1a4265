@@ -1,47 +1,18 @@
 # Notification System Design
-# 📢 Notification System Design
 
-A RESTful Notification Management System for a campus platform that delivers **Placement**, **Event**, and **Result** notifications to students.
+## Stage 1 – REST API Specification
 
-The system provides REST APIs for notification management and uses **Socket.IO (WebSockets)** for real-time notification delivery.
+## Overview
 
----
+The Notification System is designed to deliver real-time updates to students regarding **placement drives, examination results, and campus events**. The platform exposes a RESTful API for managing notifications and uses **Socket.IO (WebSockets)** to instantly push newly created notifications to connected users.
 
-# 📑 Table of Contents
-
-* Overview
-* Notification Model
-* Common Headers
-* REST API Endpoints
-
-  * Get All Notifications
-  * Get Notification by ID
-  * Create Notification
-  * Mark Notification as Read
-  * Mark All Notifications as Read
-  * Delete Notification
-* HTTP Status Codes
-* Error Response
-* Real-Time Notification Flow
-* API Summary
-* Naming Conventions
+The APIs follow REST architectural principles with consistent resource naming, JSON request/response formats, and standard HTTP status codes.
 
 ---
 
-# 📌 Overview
+# Notification Resource
 
-This document defines the REST API contract for a campus notification platform.
-
-The APIs follow RESTful principles with:
-
-* Predictable resource naming
-* JSON request and response formats
-* Standard HTTP status codes
-* Real-time communication using Socket.IO
-
----
-
-# 📦 Notification Model
+A notification contains the following information.
 
 ```json
 {
@@ -54,29 +25,18 @@ The APIs follow RESTful principles with:
 }
 ```
 
-### Field Description
-
-| Field     | Type               | Description                    |
-| --------- | ------------------ | ------------------------------ |
-| id        | UUID               | Unique notification identifier |
-| type      | String             | Placement / Event / Result     |
-| title     | String             | Notification title             |
-| message   | String             | Notification content           |
-| isRead    | Boolean            | Read status                    |
-| createdAt | ISO-8601 Timestamp | Notification creation time     |
-
 ---
 
-# 📋 Common Headers
+# Common HTTP Headers
 
-## Request Headers
+### Request Headers
 
 ```http
 Content-Type: application/json
 Accept: application/json
 ```
 
-## Response Headers
+### Response Headers
 
 ```http
 Content-Type: application/json
@@ -84,25 +44,27 @@ Content-Type: application/json
 
 ---
 
-# 🚀 REST API Endpoints
+# REST API Endpoints
 
-## 1️⃣ Get All Notifications
+## 1. Retrieve Notifications
 
-Retrieve notifications for a student.
-
-### Endpoint
+**Endpoint**
 
 ```http
 GET /api/notifications
 ```
 
+### Description
+
+Returns a paginated list of notifications for the authenticated student.
+
 ### Query Parameters
 
-| Parameter | Type   | Required | Description                                          |
-| --------- | ------ | -------- | ---------------------------------------------------- |
-| page      | Number | No       | Current page number                                  |
-| limit     | Number | No       | Number of records per page                           |
-| type      | String | No       | Filter by notification type (Placement/Event/Result) |
+| Parameter | Type    | Required | Description                                            |
+| --------- | ------- | -------- | ------------------------------------------------------ |
+| page      | Integer | No       | Page number (default: 1)                               |
+| limit     | Integer | No       | Number of records per page                             |
+| type      | String  | No       | Filter by notification type (Placement, Event, Result) |
 
 ### Example Request
 
@@ -110,7 +72,7 @@ GET /api/notifications
 GET /api/notifications?page=1&limit=10&type=Placement
 ```
 
-### Success Response (200)
+### Success Response (200 OK)
 
 ```json
 {
@@ -123,7 +85,7 @@ GET /api/notifications?page=1&limit=10&type=Placement
       "id": "1",
       "type": "Placement",
       "title": "Placement Drive",
-      "message": "Amazon hiring",
+      "message": "Amazon is hiring.",
       "isRead": false,
       "createdAt": "2026-04-22T17:51:18Z"
     }
@@ -133,15 +95,17 @@ GET /api/notifications?page=1&limit=10&type=Placement
 
 ---
 
-## 2️⃣ Get Notification by ID
+## 2. Retrieve a Notification
 
-Retrieve a single notification.
-
-### Endpoint
+**Endpoint**
 
 ```http
 GET /api/notifications/{id}
 ```
+
+### Description
+
+Returns details of a specific notification.
 
 ### Example Request
 
@@ -149,7 +113,7 @@ GET /api/notifications/{id}
 GET /api/notifications/123
 ```
 
-### Success Response (200)
+### Success Response (200 OK)
 
 ```json
 {
@@ -158,7 +122,7 @@ GET /api/notifications/123
     "id": "123",
     "type": "Result",
     "title": "Semester Result",
-    "message": "Results published",
+    "message": "Results have been published.",
     "isRead": false,
     "createdAt": "2026-04-22T17:51:18Z"
   }
@@ -167,15 +131,17 @@ GET /api/notifications/123
 
 ---
 
-## 3️⃣ Create Notification
+## 3. Create a Notification
 
-Create a new notification.
-
-### Endpoint
+**Endpoint**
 
 ```http
 POST /api/notifications
 ```
+
+### Description
+
+Creates a new notification that will later be delivered to students.
 
 ### Request Body
 
@@ -187,105 +153,111 @@ POST /api/notifications
 }
 ```
 
-### Success Response (201)
+### Success Response (201 Created)
 
 ```json
 {
   "success": true,
-  "message": "Notification created successfully",
+  "message": "Notification created successfully.",
   "notificationId": "12345"
 }
 ```
 
 ---
 
-## 4️⃣ Mark Notification as Read
+## 4. Mark a Notification as Read
 
-Mark a specific notification as read.
-
-### Endpoint
+**Endpoint**
 
 ```http
 PATCH /api/notifications/{id}/read
 ```
 
-### Success Response (200)
+### Description
+
+Marks a single notification as read.
+
+### Success Response
 
 ```json
 {
   "success": true,
-  "message": "Notification marked as read"
+  "message": "Notification marked as read."
 }
 ```
 
 ---
 
-## 5️⃣ Mark All Notifications as Read
+## 5. Mark All Notifications as Read
 
-Mark every notification as read.
-
-### Endpoint
+**Endpoint**
 
 ```http
 PATCH /api/notifications/read-all
 ```
 
-### Success Response (200)
+### Description
+
+Marks all notifications for the authenticated student as read.
+
+### Success Response
 
 ```json
 {
   "success": true,
-  "message": "All notifications marked as read"
+  "message": "All notifications marked as read."
 }
 ```
 
 ---
 
-## 6️⃣ Delete Notification
+## 6. Delete a Notification
 
-Delete a notification.
-
-### Endpoint
+**Endpoint**
 
 ```http
 DELETE /api/notifications/{id}
 ```
 
-### Success Response (200)
+### Description
+
+Deletes the specified notification.
+
+### Success Response
 
 ```json
 {
   "success": true,
-  "message": "Notification deleted"
+  "message": "Notification deleted successfully."
 }
 ```
 
 ---
 
-# 📊 HTTP Status Codes
+# HTTP Status Codes
 
-| Status Code | Description                   |
-| ----------- | ----------------------------- |
-| 200         | Request successful            |
-| 201         | Resource created successfully |
-| 400         | Bad request                   |
-| 404         | Notification not found        |
-| 500         | Internal server error         |
+| Status Code               | Description                    |
+| ------------------------- | ------------------------------ |
+| 200 OK                    | Request processed successfully |
+| 201 Created               | Resource created successfully  |
+| 400 Bad Request           | Invalid request parameters     |
+| 404 Not Found             | Notification does not exist    |
+| 500 Internal Server Error | Unexpected server error        |
 
 ---
 
-# ❌ Error Response
+# Standard Error Response
 
 ```json
 {
   "success": false,
-  "message": "Notification not found"
+  "message": "Notification not found."
 }
 ```
 
 ---
 
-# ⚡ Real-Time Notification System
+# Real-Time Notification Delivery
 
 ## Technology
 
@@ -294,147 +266,87 @@ DELETE /api/notifications/{id}
 
 ## Workflow
 
-```text
-Student Login
-      │
-      ▼
-WebSocket Connection Established
-      │
-      ▼
-Backend Stores Active Socket
-      │
-      ▼
-Admin Creates Notification
-      │
-      ▼
-Notification Saved to Database
-      │
-      ▼
-Socket.IO Emits Event
-      │
-      ▼
-Student Receives Notification Instantly
-```
+1. Student logs into the application.
+2. Client establishes a WebSocket connection.
+3. Server stores the student's active socket connection.
+4. Administrator creates a notification.
+5. Notification is saved in the database.
+6. Server emits the notification to the appropriate connected students.
+7. Students receive the notification instantly without refreshing the page.
 
 ---
 
-## Event Name
+## Socket Event
+
+### Event Name
 
 ```text
 new-notification
 ```
 
-## Event Payload
+### Event Payload
 
 ```json
 {
   "id": "123",
   "type": "Placement",
   "title": "Placement Drive",
-  "message": "Amazon hiring",
+  "message": "Amazon is hiring.",
   "createdAt": "2026-04-22T17:51:18Z"
 }
 ```
 
 ---
 
-# 📌 REST API Summary
+# REST API Summary
 
-| Method | Endpoint                       | Description                    |
-| ------ | ------------------------------ | ------------------------------ |
-| GET    | `/api/notifications`           | Retrieve all notifications     |
-| GET    | `/api/notifications/{id}`      | Retrieve notification by ID    |
-| POST   | `/api/notifications`           | Create a notification          |
-| PATCH  | `/api/notifications/{id}/read` | Mark a notification as read    |
-| PATCH  | `/api/notifications/read-all`  | Mark all notifications as read |
-| DELETE | `/api/notifications/{id}`      | Delete a notification          |
-
----
-
-# 🏗️ Naming Conventions
-
-* Use **plural nouns** for resources.
-* Follow **RESTful HTTP methods**.
-* Exchange data using **JSON**.
-* Use **UUIDs** as notification identifiers.
-* Store timestamps in **ISO-8601** format.
-* Return consistent response structures for success and error cases.
+| HTTP Method | Endpoint                     | Description                    |
+| ----------- | ---------------------------- | ------------------------------ |
+| GET         | /api/notifications           | Retrieve all notifications     |
+| GET         | /api/notifications/{id}      | Retrieve a notification by ID  |
+| POST        | /api/notifications           | Create a new notification      |
+| PATCH       | /api/notifications/{id}/read | Mark a notification as read    |
+| PATCH       | /api/notifications/read-all  | Mark all notifications as read |
+| DELETE      | /api/notifications/{id}      | Delete a notification          |
 
 ---
 
-# 📖 Technology Stack
+# Design Conventions
 
-| Layer                   | Technology |
-| ----------------------- | ---------- |
-| API Architecture        | REST       |
-| Data Format             | JSON       |
-| Real-Time Communication | Socket.IO  |
-| Protocol                | WebSockets |
-| Identifier              | UUID       |
-| Timestamp Format        | ISO-8601   |
+* RESTful resource naming using plural nouns.
+* Standard HTTP methods (GET, POST, PATCH, DELETE).
+* JSON used for all request and response bodies.
+* Notification identifiers use UUID format.
+* Date and time values follow the ISO 8601 standard (UTC).
+* Consistent success and error response structure across all endpoints.
+* Pagination support for scalable notification retrieval.
+* Real-time notification delivery using Socket.IO and WebSockets.
 
----
+# Notification System Design
 
-## 📄 License
+# Stage 2 – Database Design
 
-This API specification is intended for educational and development purposes. Feel free to extend it according to your application's requirements.
+## Database Selection
 
-# 🗄️ Stage 2 – Database Design
+### Chosen Database: MongoDB
 
-This document describes the database architecture for the **Campus Notification System**, including the database selection, data model, indexing strategy, optimization techniques, and common MongoDB operations.
+MongoDB is selected as the primary database for the notification system because it offers high performance, flexible document storage, and excellent scalability. Its document-oriented architecture aligns naturally with JSON-based REST APIs and integrates seamlessly with Node.js through Mongoose.
 
----
+### Why MongoDB?
 
-# 📑 Table of Contents
-
-* Database Choice
-* Why MongoDB?
-* Database Collections
-
-  * Students Collection
-  * Notifications Collection
-* Entity Relationship
-* Indexing Strategy
-* Performance Challenges
-* Optimization Techniques
-* MongoDB Queries
-
-  * Get Notifications
-  * Get Notification by ID
-  * Create Notification
-  * Mark Notification as Read
-  * Mark All Notifications as Read
-  * Delete Notification
-* Summary
+* Stores notifications as JSON-like BSON documents.
+* Delivers high write throughput, making it suitable for systems generating large volumes of notifications.
+* Supports horizontal scaling through sharding.
+* Provides a flexible schema, allowing new notification attributes to be added without database migrations.
+* Integrates efficiently with Node.js applications using Mongoose ODM.
 
 ---
 
-# 🗃️ Database Choice
+# Database Collections
 
-The notification system uses **MongoDB** as the primary persistent database.
+## 1. Students Collection
 
-MongoDB is a NoSQL, document-oriented database that stores data in flexible JSON-like documents, making it well suited for notification-based applications.
-
----
-
-# ✅ Why MongoDB?
-
-MongoDB provides several advantages for a notification management system:
-
-* 📄 Stores notifications as JSON-like documents.
-* ⚡ High write performance for handling frequent notification creation.
-* 📈 Supports horizontal scaling through **sharding**.
-* 🔄 Flexible schema allows adding new fields without database migrations.
-* 🟢 Integrates seamlessly with **Node.js** using **Mongoose**.
-* 🚀 Efficient querying through indexing.
-
----
-
-# 📂 Database Collections
-
-## 👨‍🎓 Students Collection
-
-Stores student information.
+Stores basic student information.
 
 ```json
 {
@@ -445,20 +357,11 @@ Stores student information.
 }
 ```
 
-### Fields
-
-| Field     | Type     | Description                |
-| --------- | -------- | -------------------------- |
-| _id       | ObjectId | Unique student identifier  |
-| name      | String   | Student name               |
-| email     | String   | Student email address      |
-| createdAt | ISODate  | Account creation timestamp |
-
 ---
 
-## 🔔 Notifications Collection
+## 2. Notifications Collection
 
-Stores notifications associated with students.
+Stores notifications associated with individual students.
 
 ```json
 {
@@ -472,120 +375,98 @@ Stores notifications associated with students.
 }
 ```
 
-### Fields
-
-| Field     | Type     | Description                     |
-| --------- | -------- | ------------------------------- |
-| _id       | ObjectId | Notification identifier         |
-| studentId | ObjectId | Reference to the student        |
-| type      | String   | Placement / Event / Result      |
-| title     | String   | Notification title              |
-| message   | String   | Notification content            |
-| isRead    | Boolean  | Read status                     |
-| createdAt | ISODate  | Notification creation timestamp |
-
 ---
 
-# 🔗 Entity Relationship
+# Data Relationship
 
-Each student can receive multiple notifications.
+A **one-to-many** relationship exists between students and notifications.
 
-```text
-Student (1)
-     │
-     ├──────── Notification
-     ├──────── Notification
-     ├──────── Notification
-     └──────── Notification
+```
+Student
+   │
+   ├── Notification
+   ├── Notification
+   ├── Notification
+   └── ...
 ```
 
-**Relationship:** One Student → Many Notifications
-
-The `studentId` field in the **notifications** collection references the corresponding student.
+Each notification references its owner through the `studentId` field.
 
 ---
 
-# 📌 Indexing Strategy
+# Indexing Strategy
 
-Indexes improve query performance by reducing the time required to search large collections.
+To optimize query performance, the following indexes are recommended.
 
 ```javascript
 // Retrieve notifications for a student
-db.notifications.createIndex({ studentId: 1 })
+db.notifications.createIndex({ studentId: 1 });
 
-// Retrieve unread notifications efficiently
-db.notifications.createIndex({ studentId: 1, isRead: 1 })
+// Retrieve unread/read notifications efficiently
+db.notifications.createIndex({ studentId: 1, isRead: 1 });
 
 // Filter notifications by type
-db.notifications.createIndex({ type: 1 })
+db.notifications.createIndex({ type: 1 });
 
 // Sort notifications by creation time
-db.notifications.createIndex({ createdAt: -1 })
+db.notifications.createIndex({ createdAt: -1 });
 ```
 
 ---
 
-# ⚠️ Performance Challenges
+# Scalability Challenges
 
-As the number of notifications increases, several issues may arise:
+As the notification volume increases, several performance challenges may arise:
 
-* Slow queries without proper indexing.
-* Higher memory consumption when retrieving all notifications.
-* Expensive sorting operations on large datasets.
-* Increased query execution time due to collection growth.
-* Higher response latency during peak usage.
-
----
-
-# 🚀 Optimization Techniques
-
-To maintain system performance as data grows:
-
-* ✅ Create indexes on frequently queried fields.
-* ✅ Implement pagination using `skip()` and `limit()`.
-* ✅ Use projection to retrieve only required fields.
-* ✅ Archive or delete outdated notifications.
-* ✅ Enable sharding for very large collections.
-* ✅ Cache frequently accessed notifications using Redis.
-* ✅ Monitor database performance and optimize slow queries.
+* Slower query execution without appropriate indexes.
+* Higher memory usage when retrieving large datasets.
+* Increased sorting overhead on large collections.
+* Longer response times due to collection growth.
+* Greater storage requirements for historical notifications.
 
 ---
 
-# 💻 MongoDB Queries
+# Performance Optimization Strategies
 
-## 1️⃣ Get Notifications
+To ensure scalability and maintain performance:
 
-Retrieve paginated notifications for a student.
+* Create indexes on frequently queried fields.
+* Implement pagination using `skip()` and `limit()`.
+* Use field projection to return only required attributes.
+* Archive or remove outdated notifications periodically.
+* Enable sharding for very large datasets.
+* Cache frequently accessed notifications using Redis.
+* Process bulk notification creation asynchronously where appropriate.
+
+---
+
+# MongoDB Operations
+
+## Retrieve Notifications
+
+Returns paginated notifications for a student.
 
 ```javascript
 db.notifications
-  .find({
-    studentId: ObjectId(studentId)
-  })
-  .sort({
-    createdAt: -1
-  })
+  .find({ studentId: ObjectId(studentId) })
+  .sort({ createdAt: -1 })
   .skip(0)
-  .limit(10)
+  .limit(10);
 ```
 
 ---
 
-## 2️⃣ Get Notification by ID
-
-Retrieve a specific notification.
+## Retrieve Notification by ID
 
 ```javascript
 db.notifications.findOne({
   _id: ObjectId(notificationId)
-})
+});
 ```
 
 ---
 
-## 3️⃣ Create Notification
-
-Insert a new notification document.
+## Create Notification
 
 ```javascript
 db.notifications.insertOne({
@@ -595,14 +476,12 @@ db.notifications.insertOne({
   message: "Microsoft is hiring",
   isRead: false,
   createdAt: new Date()
-})
+});
 ```
 
 ---
 
-## 4️⃣ Mark Notification as Read
-
-Update the read status of a notification.
+## Mark Notification as Read
 
 ```javascript
 db.notifications.updateOne(
@@ -614,14 +493,12 @@ db.notifications.updateOne(
       isRead: true
     }
   }
-)
+);
 ```
 
 ---
 
-## 5️⃣ Mark All Notifications as Read
-
-Update every notification belonging to a student.
+## Mark All Notifications as Read
 
 ```javascript
 db.notifications.updateMany(
@@ -633,131 +510,95 @@ db.notifications.updateMany(
       isRead: true
     }
   }
-)
+);
 ```
 
 ---
 
-## 6️⃣ Delete Notification
-
-Remove a notification from the database.
+## Delete Notification
 
 ```javascript
 db.notifications.deleteOne({
   _id: ObjectId(notificationId)
-})
+});
 ```
 
 ---
 
-# 📊 Database Design Summary
+# Database Design Summary
 
-| Feature      | Implementation                              |
-| ------------ | ------------------------------------------- |
-| Database     | MongoDB                                     |
-| Data Model   | Document-Oriented                           |
-| Relationship | One Student → Many Notifications            |
-| Identifier   | ObjectId                                    |
-| Indexing     | Student ID, Read Status, Type, Created Time |
-| Pagination   | `skip()` and `limit()`                      |
-| Caching      | Redis                                       |
-| Scalability  | Horizontal Sharding                         |
+MongoDB is well suited for the notification platform due to its document-oriented architecture, high write performance, and horizontal scalability. By combining efficient indexing, pagination, projection, caching, and sharding, the system can continue to deliver fast and reliable notification services even as the number of students and notifications grows significantly.
 
----
+# Notification System Design
 
-# 📌 Conclusion
+# Stage 3 – Query Analysis and Optimization
 
-MongoDB is an excellent choice for the Campus Notification System due to its flexible document model, high write throughput, and scalability. By combining efficient indexing, pagination, caching, and sharding, the system can handle a growing number of students and notifications while maintaining fast response times and reliable performance.
+## Query Analysis
 
-# ⚡ Stage 3 – Query Analysis & Optimization
-
-This document analyzes the SQL query used to retrieve unread notifications, identifies potential performance bottlenecks, and provides optimization strategies to ensure efficient query execution in a large-scale notification system.
-
----
-
-# 📑 Table of Contents
-
-* Query Analysis
-* Original SQL Query
-* Query Validation
-* Performance Challenges
-* Optimized Query
-* Indexing Strategy
-* Computational Complexity
-* Indexing Best Practices
-* Additional SQL Query
-* Additional Index
-* Conclusion
-
----
-
-# 🔍 Query Analysis
-
-The following SQL query retrieves all unread notifications for a specific student and sorts them by creation time.
-
-## Original SQL Query
+### Given SQL Query
 
 ```sql
 SELECT *
 FROM notifications
 WHERE student_id = 1042
-AND is_read = FALSE
+  AND is_read = FALSE
 ORDER BY created_at ASC;
 ```
 
----
+### Query Evaluation
 
-# ✅ Query Validation
+The query correctly retrieves all **unread notifications** for the student with ID **1042** and returns them in **ascending order of creation time**.
 
-The query is logically correct.
-
-It performs the following operations:
-
-* Retrieves notifications belonging to student **1042**
-* Filters only **unread** notifications
-* Sorts the results in **ascending order of creation time**
-
-While suitable for small datasets, this query may become inefficient when the notifications table grows to millions of records.
+While the query is functionally correct, its performance may degrade significantly as the notification table grows. In a production environment containing millions of records, additional optimization is necessary to maintain low response times.
 
 ---
 
-# ⚠️ Performance Challenges
+# Performance Analysis
 
-## 1️⃣ Using `SELECT *`
+## 1. Retrieving All Columns
 
-Selecting all columns retrieves unnecessary data, increasing:
+Using `SELECT *` returns every column from the table, regardless of whether all fields are required by the application.
 
-* Memory usage
-* Network bandwidth
-* Query execution time
+### Drawbacks
 
-If the application only displays a few fields (such as title, message, and timestamp), retrieving every column is inefficient.
+* Increases network bandwidth usage.
+* Consumes additional memory.
+* Slows query execution.
+* Prevents efficient use of covering indexes.
 
----
-
-## 2️⃣ Missing Indexes
-
-Without indexes on the filtering columns, the database performs a **full table scan**.
-
-This results in:
-
-* Higher CPU usage
-* Increased disk I/O
-* Slower response times as data volume increases
+Selecting only the required columns reduces unnecessary data transfer and improves overall performance.
 
 ---
 
-## 3️⃣ Sorting Overhead
+## 2. Missing Indexes
 
-The query sorts results using the `created_at` column.
+If no index exists on the filtering columns (`student_id` and `is_read`), the database performs a **full table scan** to locate matching records.
 
-If no suitable index exists, the database performs an additional sorting operation, increasing execution time.
+### Impact
+
+* Higher disk I/O.
+* Increased CPU utilization.
+* Longer query execution time as the table grows.
 
 ---
 
-# 🚀 Optimized Query
+## 3. Sorting Overhead
 
-Instead of retrieving every column, select only the fields required by the application.
+The query orders results using `created_at`.
+
+Without a suitable index, the database must perform an additional sorting operation after filtering the records.
+
+### Impact
+
+* Additional CPU usage.
+* Temporary memory allocation.
+* Slower response times for large datasets.
+
+---
+
+# Optimized Query
+
+Instead of retrieving every column, return only the fields required by the client application.
 
 ```sql
 SELECT
@@ -768,78 +609,65 @@ SELECT
     created_at
 FROM notifications
 WHERE student_id = 1042
-AND is_read = FALSE
+  AND is_read = FALSE
 ORDER BY created_at ASC;
 ```
 
 ### Benefits
 
-* Reduces unnecessary data transfer
-* Lowers memory consumption
-* Improves response time
-* Makes better use of covering indexes
+* Reduces data transfer.
+* Improves query execution speed.
+* Lowers memory consumption.
+* Enables better index utilization.
 
 ---
 
-# 📌 Recommended Composite Index
+# Recommended Composite Index
 
-Create the following composite index to optimize filtering and sorting.
+To optimize filtering and sorting, create the following composite index:
 
 ```sql
 CREATE INDEX idx_notifications_student_read_created
 ON notifications(student_id, is_read, created_at);
 ```
 
-## Advantages
+### Advantages
 
 This index enables the database to:
 
-* Quickly locate notifications for a specific student
-* Efficiently filter unread notifications
-* Return results already sorted by `created_at`
-* Minimize disk reads and avoid unnecessary sorting
+* Locate notifications for a specific student efficiently.
+* Filter unread notifications without scanning unrelated rows.
+* Return results already ordered by `created_at`.
+* Eliminate unnecessary sorting operations in many cases.
 
 ---
 
-# 📊 Computational Complexity
+# Time Complexity
 
-## Without an Index
+| Scenario             | Estimated Complexity                                                   |
+| -------------------- | ---------------------------------------------------------------------- |
+| Without Index        | Search: **O(n)**<br>Sort: **O(n log n)**                               |
+| With Composite Index | Search: **O(log n)**<br>Sorting: Usually avoided due to index ordering |
 
-| Operation | Complexity     |
-| --------- | -------------- |
-| Searching | **O(n)**       |
-| Sorting   | **O(n log n)** |
-
-A full table scan and separate sorting operation make the query inefficient for large datasets.
+Using the composite index significantly reduces query execution time, especially for large notification datasets.
 
 ---
 
-## With the Recommended Index
+# Indexing Best Practices
 
-| Operation | Complexity          |
-| --------- | ------------------- |
-| Searching | **O(log n)**        |
-| Sorting   | Usually unnecessary |
+Not every database column should be indexed.
 
-Since the index stores records in the required order, the database can often avoid an additional sorting step.
+Although indexes improve read performance, excessive indexing introduces additional overhead.
 
----
+### Disadvantages of Over-Indexing
 
-# 🏗️ Indexing Best Practices
+* Increased storage consumption.
+* Slower INSERT operations.
+* Slower UPDATE operations.
+* Slower DELETE operations.
+* Higher maintenance costs.
 
-Indexes significantly improve read performance, but they should be used strategically.
-
-## Avoid Indexing Every Column
-
-Creating indexes on all columns is not recommended because it:
-
-* Consumes additional storage
-* Slows down `INSERT`, `UPDATE`, and `DELETE` operations
-* Increases maintenance overhead
-
-## Recommended Practice
-
-Create indexes only on columns that are frequently used for:
+Indexes should be created only on columns that are frequently used for:
 
 * Filtering (`WHERE`)
 * Sorting (`ORDER BY`)
@@ -848,22 +676,24 @@ Create indexes only on columns that are frequently used for:
 
 ---
 
-# 💻 Additional SQL Query
+# Additional SQL Query
 
-Retrieve all students who received **Placement** notifications within the last seven days.
+### Requirement
+
+Retrieve all students who received **Placement** notifications during the last seven days.
 
 ```sql
 SELECT DISTINCT student_id
 FROM notifications
 WHERE type = 'Placement'
-AND created_at >= NOW() - INTERVAL 7 DAY;
+  AND created_at >= NOW() - INTERVAL 7 DAY;
 ```
 
 ---
 
-# 📌 Additional Index
+# Supporting Index
 
-Optimize the above query with the following index.
+To improve the performance of the above query, create the following composite index:
 
 ```sql
 CREATE INDEX idx_notifications_type_created
@@ -872,626 +702,559 @@ ON notifications(type, created_at);
 
 ### Benefits
 
-This index allows the database to:
+The index allows the database to:
 
-* Quickly filter notifications by type
-* Efficiently search recent notifications
-* Reduce query execution time
-* Improve scalability for reporting queries
-
----
-
-# 📈 Performance Summary
-
-| Optimization                    | Benefit                                   |
-| ------------------------------- | ----------------------------------------- |
-| Select required columns         | Reduces memory usage and data transfer    |
-| Composite indexes               | Faster filtering and sorting              |
-| Avoid `SELECT *`                | Improves query efficiency                 |
-| Index frequently queried fields | Minimizes full table scans                |
-| Proper sorting index            | Eliminates unnecessary sorting operations |
+* Quickly filter notifications by type.
+* Efficiently identify notifications created within the specified time range.
+* Reduce unnecessary table scans.
 
 ---
 
-# 🎯 Conclusion
+# Performance Summary
 
-The original SQL query is functionally correct but requires optimization for production-scale applications.
-
-By retrieving only the required columns and implementing composite indexes, the database can significantly reduce query execution time, minimize resource consumption, and efficiently handle millions of notifications. Proper indexing, combined with thoughtful query design, ensures the notification system remains fast, scalable, and responsive as data volume grows.
-
-# 🚀 Stage 4 – System Performance Improvements
-
-This document outlines strategies to improve the performance and scalability of the **Campus Notification System** using **Redis** for caching and **Socket.IO** for real-time notification delivery.
-
-As the number of users and notifications grows, these technologies help reduce database load, improve response times, and provide a seamless user experience.
+| Optimization                        | Benefit                                   |
+| ----------------------------------- | ----------------------------------------- |
+| Select only required columns        | Reduces memory usage and network overhead |
+| Composite indexes                   | Faster filtering and sorting              |
+| Avoid `SELECT *`                    | Improves execution efficiency             |
+| Index frequently queried fields     | Minimizes full table scans                |
+| Use covering indexes where possible | Further reduces disk access               |
 
 ---
 
-# 📑 Table of Contents
+# Conclusion
 
-* System Overview
-* Why Use Caching?
-* Why Redis?
-* Caching Workflow
-* Cache Invalidation Strategy
-* Real-Time Notification Delivery
-* Socket.IO Workflow
-* Why Redis and Socket.IO Together?
-* System Architecture
-* Benefits
-* Conclusion
+The original SQL query is functionally correct but not optimized for large-scale systems. Replacing `SELECT *` with explicit column selection and introducing appropriate composite indexes significantly improves query performance. These optimizations reduce disk I/O, eliminate unnecessary sorting, and enable the notification system to scale efficiently while maintaining fast response times as the volume of data increases.
 
----
+# Notification System Design
 
-# 📌 System Overview
+# Stage 4 – Performance Optimization with Redis and Socket.IO
 
-In a large-scale notification platform, querying the database for every request can lead to:
+## Overview
 
-* Increased response times
-* Higher database load
-* Reduced scalability
-* Poor user experience
+As the number of users and notifications grows, directly querying the database for every request can increase latency and place significant load on the database server. To improve system performance and scalability, the notification system incorporates **Redis** for caching and **Socket.IO (WebSockets)** for real-time notification delivery.
 
-To address these challenges, the system incorporates:
-
-* **Redis** for high-speed caching
-* **Socket.IO** for instant notification delivery
-
-Together, these technologies ensure fast, scalable, and real-time communication.
+Together, these technologies reduce database load, improve response times, and provide a seamless user experience.
 
 ---
 
-# ⚡ Why Use Caching?
+# Caching Strategy
 
-Caching stores frequently accessed data in memory, allowing applications to retrieve information much faster than querying the database.
+## Why Use Redis?
 
-### Advantages
+Redis is an in-memory key-value data store designed for extremely fast read and write operations.
 
-* 🚀 Faster response times
-* 📉 Reduced database load
-* 💾 Lower latency
-* 📈 Improved scalability
-* 😊 Better user experience
+Instead of querying the database for every request, frequently accessed notification data is temporarily stored in Redis. This minimizes database access and significantly improves application performance.
 
----
+### Benefits of Redis
 
-# 🟥 Why Redis?
-
-**Redis** is an in-memory data store designed for extremely fast read and write operations.
-
-### Key Features
-
-* In-memory storage for high performance
-* Millisecond response times
-* Supports key-value data structures
-* Lightweight and highly scalable
-* Ideal for caching frequently accessed notifications
+* Low-latency data retrieval
+* Reduced database load
+* Faster API response times
+* Improved application scalability
+* Efficient handling of frequently accessed data
 
 ---
 
-# 🔄 Caching Workflow
+# Cache Workflow
 
-The application follows a **Cache-Aside Pattern** for notification retrieval.
-
-```text
-User Requests Notifications
-            │
-            ▼
-     Check Redis Cache
-            │
-      ┌─────┴─────┐
-      │           │
- Cache Hit     Cache Miss
-      │           │
-      ▼           ▼
-Return Data   Query Database
-                  │
-                  ▼
-         Store Results in Redis
-                  │
-                  ▼
-           Return Notifications
-```
-
-### Workflow Steps
-
-1. The user requests notifications.
-2. The application checks Redis for cached data.
-3. If the cache contains the notifications (**Cache Hit**), they are returned immediately.
-4. If the cache does not contain the data (**Cache Miss**), the application retrieves notifications from the database.
-5. The fetched notifications are stored in Redis before being returned to the user.
-
-This approach significantly reduces repeated database queries.
-
----
-
-# 🔄 Cache Invalidation Strategy
-
-Cached data must remain consistent with the database.
-
-Whenever a notification is:
-
-* Created
-* Updated
-* Marked as Read
-* Deleted
-
-the corresponding Redis cache should be refreshed or removed.
-
-### Recommended Process
-
-```text
-Update Database
-      │
-      ▼
-Invalidate Redis Cache
-      │
-      ▼
-Next Request
-      │
-      ▼
-Fetch Fresh Data
-      │
-      ▼
-Store Updated Data in Redis
-```
-
-This ensures users always receive the latest notification data.
-
----
-
-# 📡 Real-Time Notification Delivery
-
-To deliver notifications instantly, the system uses **Socket.IO**, a library built on top of WebSockets.
-
-Socket.IO enables bidirectional communication between the client and server, allowing notifications to be pushed to users without requiring page refreshes.
-
----
-
-# 🔔 Socket.IO Workflow
-
-```text
-User Logs In
-      │
-      ▼
-Socket.IO Connection Established
-      │
-      ▼
-Admin Creates Notification
-      │
-      ▼
-Notification Saved to Database
-      │
-      ▼
-Redis Cache Invalidated
-      │
-      ▼
-Backend Emits "new-notification"
-      │
-      ▼
-Student Receives Notification Instantly
-```
-
-### Event Name
-
-```text
-new-notification
-```
-
----
-
-# 🤝 Why Use Redis and Socket.IO Together?
-
-Redis and Socket.IO complement each other by addressing different aspects of system performance.
-
-| Technology | Purpose                                             |
-| ---------- | --------------------------------------------------- |
-| Redis      | Reduces database queries through caching            |
-| Socket.IO  | Delivers notifications instantly to connected users |
-
-### Combined Benefits
-
-* ⚡ Faster application response times
-* 📉 Reduced database workload
-* 📈 Improved scalability
-* 🔄 Real-time updates
-* 😊 Enhanced user experience
-
----
-
-# 🏗️ System Architecture
-
-```text
-                 +-------------------+
-                 |      Client       |
-                 | (Web / Mobile App)|
-                 +---------+---------+
-                           |
-                    HTTP / WebSocket
-                           |
-                 +---------v---------+
-                 |   Node.js Server  |
-                 +----+---------+----+
-                      |         |
-              Redis Cache   Socket.IO
-                      |         |
-                      +----+----+
-                           |
-                    MySQL Database
-```
-
----
-
-# 📊 Performance Benefits
-
-| Feature               | Benefit                                   |
-| --------------------- | ----------------------------------------- |
-| Redis Caching         | Faster data retrieval                     |
-| Cache-Aside Pattern   | Reduces repeated database queries         |
-| Cache Invalidation    | Maintains data consistency                |
-| Socket.IO             | Instant notification delivery             |
-| WebSockets            | Persistent low-latency communication      |
-| Combined Architecture | High scalability and improved performance |
-
----
-
-# 🎯 Conclusion
-
-Integrating **MySQL**, **Redis**, and **Socket.IO** creates a robust and scalable notification system capable of supporting thousands of concurrent users.
-
-* **Redis** minimizes unnecessary database access by caching frequently requested notifications.
-* **Socket.IO** provides real-time communication, ensuring users receive notifications instantly without refreshing the application.
-* Together, these technologies improve performance, reduce server load, and deliver a responsive user experience even as the system scales.
-
-# 🚀 Stage 5 – Scalable Notification Processing
-
-This document explains how to design a scalable and reliable notification processing system using **RabbitMQ**, **Socket.IO**, and **background workers**.
-
-Instead of sending notifications directly from the API, notifications are processed asynchronously through a message queue. This approach improves application performance, reliability, and scalability.
-
----
-
-# 📑 Table of Contents
-
-* Overview
-* Why Use a Message Queue?
-* Why RabbitMQ?
-* Notification Processing Workflow
-* Retry Mechanism & Dead Letter Queue (DLQ)
-* System Architecture
-* Benefits
-* Conclusion
-
----
-
-# 📌 Overview
-
-In a high-traffic notification system, sending notifications synchronously can increase API response time and overload the server.
-
-To overcome this challenge, the system uses **RabbitMQ** as a message broker.
-
-When a notification is created:
-
-1. The notification is stored in the database.
-2. A message is published to RabbitMQ.
-3. A background worker consumes the message.
-4. The notification is delivered to connected users via **Socket.IO**.
-
-This asynchronous architecture keeps the API fast and ensures reliable notification delivery.
-
----
-
-# 📨 Why Use a Message Queue?
-
-A message queue decouples notification creation from notification delivery.
-
-Instead of making users wait until the notification is sent, the API immediately queues the task and responds.
-
-### Advantages
-
-* ⚡ Faster API response times
-* 📈 Better scalability
-* 🔄 Asynchronous processing
-* 🛡️ Improved fault tolerance
-* 📦 Handles traffic spikes efficiently
-
----
-
-# 🐇 Why RabbitMQ?
-
-**RabbitMQ** is a reliable and widely used message broker designed for asynchronous communication between services.
-
-### Key Features
-
-* Reliable message delivery
-* Persistent message storage
-* Retry support
-* Dead Letter Queue (DLQ)
-* Load balancing across multiple workers
-* Scalable producer-consumer architecture
-
----
-
-# 🔄 Notification Processing Workflow
-
-The notification lifecycle follows these steps:
-
-```text id="glff3d"
-1. Create Notification Request
-            │
-            ▼
-2. Save Notification to Database
-            │
-            ▼
-3. Publish Message to RabbitMQ
-            │
-            ▼
-4. Background Worker Consumes Message
-            │
-            ▼
-5. Deliver Notification via Socket.IO
-            │
-            ▼
-6. User Receives Notification Instantly
-```
-
-### Step-by-Step Process
-
-1. A new notification request is received by the API.
-2. The notification is stored in the database.
-3. A message containing the notification details is added to the RabbitMQ queue.
-4. A background worker retrieves the message from the queue.
-5. The worker sends the notification using Socket.IO.
-6. Connected users receive the notification in real time.
-
----
-
-# 🔁 Retry Mechanism & Dead Letter Queue (DLQ)
-
-Notification delivery may occasionally fail due to temporary issues such as network interruptions or disconnected clients.
-
-To improve reliability:
-
-* Retry failed deliveries automatically.
-* Attempt delivery a limited number of times.
-* Move permanently failed messages to a **Dead Letter Queue (DLQ)** for later inspection and processing.
+The notification retrieval process follows a **Cache-Aside (Lazy Loading)** strategy.
 
 ### Workflow
 
-```text id="8twmff"
-Notification Queue
-        │
-        ▼
+1. A user requests their notifications.
+2. The application checks Redis for cached notification data.
+3. **Cache Hit**
+
+   * Notifications are retrieved directly from Redis.
+   * No database query is required.
+4. **Cache Miss**
+
+   * Notifications are fetched from the database.
+   * The retrieved data is stored in Redis with an expiration time (TTL).
+   * The notifications are returned to the user.
+
+```text id="y2k6rx"
+Client
+   │
+   ▼
+Application Server
+   │
+   ▼
+Redis Cache
+   │
+Cache Hit ─────────► Return Notifications
+   │
+Cache Miss
+   ▼
+Database
+   │
+   ▼
+Store in Redis
+   │
+   ▼
+Return Notifications
+```
+
+---
+
+# Cache Invalidation
+
+To maintain data consistency, cached notifications must be refreshed whenever notification data changes.
+
+### Cache is Invalidated When
+
+* A new notification is created.
+* A notification is updated.
+* A notification is marked as read.
+* A notification is deleted.
+
+### Invalidation Process
+
+1. Update the database.
+2. Remove or refresh the corresponding Redis cache.
+3. The next request retrieves the latest data from the database.
+4. Fresh data is cached again for future requests.
+
+This strategy ensures users always receive the most up-to-date notifications while maintaining high performance.
+
+---
+
+# Real-Time Notification Delivery
+
+## Why Socket.IO?
+
+Socket.IO enables bidirectional communication between the client and server using WebSockets (with automatic fallback mechanisms when necessary).
+
+Unlike traditional HTTP polling, Socket.IO allows the server to push notifications to connected users instantly.
+
+### Benefits
+
+* Instant notification delivery
+* Lower network overhead
+* Reduced client polling
+* Improved user experience
+* Persistent client-server connection
+
+---
+
+# Notification Delivery Workflow
+
+1. The user logs into the application.
+2. The frontend establishes a Socket.IO connection with the server.
+3. The server associates the socket connection with the authenticated user.
+4. An administrator creates a new notification.
+5. The notification is stored in the database.
+6. The user's Redis cache is invalidated.
+7. The backend emits a `new-notification` event to the connected client.
+8. The client immediately displays the notification without requiring a page refresh.
+
+```text id="4mz2qx"
+Admin
+   │
+Create Notification
+   │
+   ▼
+Application Server
+   │
+   ▼
+Database
+   │
+Invalidate Redis Cache
+   │
+   ▼
+Socket.IO Server
+   │
+   ▼
+Connected Student
+```
+
+---
+
+# Redis and Socket.IO Integration
+
+Redis and Socket.IO address different aspects of system performance and complement each other.
+
+| Technology | Purpose                                                                   |
+| ---------- | ------------------------------------------------------------------------- |
+| Redis      | Reduces database queries by caching frequently accessed notification data |
+| Socket.IO  | Delivers notifications instantly to connected users using WebSockets      |
+
+Using both technologies together provides:
+
+* Faster API response times
+* Reduced database workload
+* Efficient resource utilization
+* Improved scalability
+* Real-time user engagement
+
+---
+
+# Scalability Considerations
+
+For large-scale deployments supporting thousands of concurrent users, additional enhancements can be implemented:
+
+* Configure Redis with an appropriate Time-To-Live (TTL) for cached notifications.
+* Use Redis Pub/Sub to synchronize notifications across multiple application servers.
+* Deploy Socket.IO with a Redis Adapter to support horizontal scaling.
+* Implement database connection pooling to optimize resource usage.
+* Archive older notifications to reduce active database size.
+
+---
+
+# Architecture Overview
+
+```text id="bw1sk4"
+Client
+   │
+HTTP Request
+   ▼
+Application Server
+   │
+   ├────────► Redis Cache
+   │            │
+   │        Cache Hit
+   │            │
+   │            ▼
+   │      Return Data
+   │
+   └────────► Database
+                  │
+                  ▼
+          Update Redis Cache
+
+                 │
+                 ▼
+
+           Socket.IO Server
+                 │
+                 ▼
+        Connected Student
+```
+
+---
+
+# Conclusion
+
+Integrating **MySQL**, **Redis**, and **Socket.IO** creates a high-performance and scalable notification platform.
+
+* **MySQL** provides reliable persistent storage.
+* **Redis** accelerates notification retrieval by reducing repetitive database queries.
+* **Socket.IO** enables real-time delivery of notifications to connected users.
+
+This architecture ensures low-latency responses, minimizes database load, and delivers a responsive user experience, making the notification system capable of efficiently supporting thousands of concurrent users and millions of notifications.
+
+# Notification System Design
+
+# Stage 5 – Scalable Notification Processing
+
+## Overview
+
+In a large-scale notification system, sending notifications synchronously during an API request can increase response times and reduce system throughput. To improve scalability and reliability, notification delivery should be **decoupled** from the API using a **message queue**.
+
+A message broker such as **RabbitMQ** enables asynchronous processing by allowing the API to publish notification events while background workers handle the actual delivery to users.
+
+---
+
+# Why Use RabbitMQ?
+
+RabbitMQ acts as an intermediary between the Notification API and the notification delivery service.
+
+Instead of sending notifications immediately, the API publishes a message to a queue. Background worker processes consume messages from the queue and deliver notifications independently.
+
+### Benefits
+
+* Asynchronous notification processing
+* Faster API response times
+* Improved scalability
+* Reliable message delivery
+* Better fault tolerance
+* Load balancing across multiple workers
+
+---
+
+# Notification Processing Workflow
+
+The notification delivery process consists of the following steps:
+
+1. A client submits a request to create a notification.
+2. The Notification API validates the request.
+3. The notification is stored in the database.
+4. A notification event is published to a RabbitMQ queue.
+5. The API immediately returns a success response to the client.
+6. A background worker consumes the queued message.
+7. The worker delivers the notification through Socket.IO.
+8. Connected users receive the notification instantly.
+
+```text id="8dzt1l"
+Client
+   │
+Create Notification
+   │
+   ▼
+Notification API
+   │
+Save Notification
+   ▼
+Database
+   │
+Publish Event
+   ▼
+RabbitMQ Queue
+   │
+Consume Message
+   ▼
 Background Worker
-        │
-   Delivery Success?
-     ┌──────┴──────┐
-     │             │
-    Yes            No
-     │             │
-     ▼             ▼
- Delivered      Retry
-                   │
-          Max Retries Reached?
-             ┌─────┴─────┐
-             │           │
-            No          Yes
-             │           │
-             ▼           ▼
-         Retry Again   Dead Letter Queue
-```
-
-This approach prevents message loss and improves overall system reliability.
-
----
-
-# 🏗️ System Architecture
-
-```text id="y6qvnc"
-                 +------------------+
-                 |      Client      |
-                 +---------+--------+
-                           |
-                     HTTP Request
-                           |
-                 +---------v--------+
-                 | Notification API |
-                 +---------+--------+
-                           |
-                    Save Notification
-                           |
-                           ▼
-                 +------------------+
-                 |     Database     |
-                 +---------+--------+
-                           |
-                    Publish Message
-                           |
-                           ▼
-                 +------------------+
-                 |     RabbitMQ     |
-                 +---------+--------+
-                           |
-                    Consume Message
-                           |
-                           ▼
-                 +------------------+
-                 | Background Worker|
-                 +---------+--------+
-                           |
-                     Socket.IO Event
-                           |
-                           ▼
-                 +------------------+
-                 | Connected Users  |
-                 +------------------+
+   │
+Deliver Notification
+   ▼
+Socket.IO Server
+   │
+   ▼
+Connected Users
 ```
 
 ---
 
-# 📊 Benefits
+# Retry Mechanism
 
-| Feature                  | Benefit                            |
-| ------------------------ | ---------------------------------- |
-| RabbitMQ                 | Asynchronous message processing    |
-| Background Workers       | Offloads heavy tasks from the API  |
-| Socket.IO                | Real-time notification delivery    |
-| Retry Mechanism          | Reliable message processing        |
-| Dead Letter Queue        | Prevents message loss              |
-| Queue-Based Architecture | Handles traffic spikes efficiently |
-| Decoupled Services       | Easier scaling and maintenance     |
+Temporary failures such as network interruptions or service outages should not result in permanent message loss.
 
----
+If notification delivery fails:
 
-# 🎯 Performance Advantages
+1. The worker retries the operation a predefined number of times.
+2. If all retry attempts fail, the message is moved to a **Dead Letter Queue (DLQ)**.
+3. Failed messages can later be inspected, monitored, and reprocessed without affecting the main queue.
 
-Implementing RabbitMQ provides several performance improvements:
-
-* 🚀 Faster API responses by processing notifications asynchronously.
-* 📉 Reduced server workload during peak traffic.
-* 📦 Better handling of high notification volumes.
-* 🔄 Automatic retry of failed notification deliveries.
-* 📈 Improved scalability through multiple background workers.
-* 🛡️ Reliable and fault-tolerant message processing.
-
----
-
-# 📌 Conclusion
-
-Using **RabbitMQ** together with **Socket.IO** creates a scalable, reliable, and high-performance notification processing system.
-
-* **RabbitMQ** ensures notifications are processed asynchronously through a message queue.
-* **Background workers** handle delivery without blocking API requests.
-* **Socket.IO** provides instant, real-time notification delivery to connected users.
-* **Retry mechanisms** and a **Dead Letter Queue (DLQ)** improve reliability by preventing message loss.
-
-This architecture enables the notification system to efficiently support thousands of concurrent users while maintaining fast response times, high availability, and a seamless user experience.
-
-# ⭐ Stage 6 – Priority Inbox
-
-This document describes the implementation of a **Priority Inbox** for the Campus Notification System. Instead of displaying notifications solely by creation time, notifications are ordered based on their importance, ensuring that users see the most critical updates first.
+```text id="ccjlwm"
+RabbitMQ Queue
+      │
+      ▼
+Background Worker
+      │
+Success ─────────► Deliver Notification
+      │
+Failure
+      ▼
+Retry
+      │
+Still Fails
+      ▼
+Dead Letter Queue (DLQ)
+```
 
 ---
 
-# 📑 Table of Contents
+# Advantages of Asynchronous Processing
 
-* Overview
-* Priority Levels
-* SQL Query
-* Query Explanation
-* Why Use Priority-Based Sorting?
-* Performance Considerations
-* Benefits
-* Conclusion
-
----
-
-# 📌 Overview
-
-In a campus notification system, not all notifications have the same level of importance.
-
-For example:
-
-* Placement opportunities require immediate attention.
-* Examination results are time-sensitive.
-* General event announcements are informative but less urgent.
-
-To improve the user experience, notifications are sorted by **priority first**, followed by **creation time**.
+| Feature            | Benefit                                                 |
+| ------------------ | ------------------------------------------------------- |
+| Message Queue      | Decouples notification creation from delivery           |
+| Background Workers | Processes notifications independently of API requests   |
+| Retry Mechanism    | Handles temporary delivery failures automatically       |
+| Dead Letter Queue  | Stores permanently failed messages for later analysis   |
+| Horizontal Scaling | Multiple workers can process notifications concurrently |
 
 ---
 
-# 🏆 Priority Levels
+# Scalability Enhancements
 
-Notifications are displayed according to the following priority order:
+As system traffic increases, RabbitMQ can be scaled efficiently by:
 
-| Priority | Notification Type | Description                                                   |
-| -------- | ----------------- | ------------------------------------------------------------- |
-| 🥇 1     | Placement         | Highest priority – Job opportunities and placement drives     |
-| 🥈 2     | Result            | Semester results, exam updates, and academic notifications    |
-| 🥉 3     | Event             | Campus events, workshops, seminars, and general announcements |
+* Running multiple consumer workers in parallel.
+* Distributing workload across multiple queues.
+* Using message acknowledgments to ensure reliable processing.
+* Configuring message durability for persistence.
+* Monitoring queue length and worker performance.
+* Scaling workers automatically based on queue size.
 
 ---
 
-# 💻 SQL Query
+# High-Level Architecture
 
-The following SQL query retrieves all notifications for a student and sorts them by priority and recency.
+```text id="0lb0i2"
+                    Client
+                       │
+                       ▼
+              Notification API
+                       │
+         Save Notification to Database
+                       │
+                       ▼
+                   Database
+                       │
+              Publish Notification Event
+                       ▼
+                 RabbitMQ Queue
+                       │
+           ┌───────────┴───────────┐
+           ▼                       ▼
+     Worker Instance 1       Worker Instance 2
+           │                       │
+           └───────────┬───────────┘
+                       ▼
+                 Socket.IO Server
+                       │
+                       ▼
+               Connected Users
+```
 
-```sql id="k9cxk6"
-SELECT *
+---
+
+# System Benefits
+
+By introducing RabbitMQ into the notification pipeline, the system achieves:
+
+* Fast API responses through asynchronous processing.
+* Reliable notification delivery using durable queues.
+* Automatic retry handling for transient failures.
+* Improved fault tolerance with Dead Letter Queues.
+* Efficient handling of traffic spikes.
+* Horizontal scalability through multiple worker instances.
+* Better separation of responsibilities between notification creation and delivery.
+
+---
+
+# Conclusion
+
+Integrating **RabbitMQ** with **Socket.IO** enables a scalable, reliable, and high-performance notification system.
+
+The Notification API focuses solely on validating requests and persisting notification data, while RabbitMQ manages asynchronous processing and worker coordination. Background workers handle notification delivery independently, ensuring that API responsiveness remains high even under heavy traffic.
+
+This architecture supports large-scale deployments by providing reliable message processing, fault tolerance through retry and Dead Letter Queues, and seamless horizontal scaling for thousands of concurrent users.
+
+# Notification System Design
+
+# Stage 6 – Priority Inbox
+
+## Overview
+
+Displaying notifications solely by creation time may cause critical updates to be buried beneath less important ones. To improve the user experience, the notification system implements **priority-based sorting**, ensuring that the most important notifications are displayed first.
+
+In this system, notifications are prioritized based on their category while maintaining chronological order within each priority level.
+
+---
+
+# Notification Priority
+
+The notification categories are assigned the following priority levels:
+
+| Priority | Notification Type |
+| -------- | ----------------- |
+| 1        | Placement         |
+| 2        | Result            |
+| 3        | Event             |
+
+This ordering ensures that placement opportunities are immediately visible to students, followed by examination results and general campus events.
+
+---
+
+# SQL Query
+
+The following query retrieves notifications for a student and orders them according to the defined priority.
+
+```sql id="f6o2kn"
+SELECT
+    id,
+    title,
+    message,
+    type,
+    is_read,
+    created_at
 FROM notifications
 WHERE student_id = ?
 ORDER BY
-CASE
-    WHEN type = 'Placement' THEN 1
-    WHEN type = 'Result' THEN 2
-    WHEN type = 'Event' THEN 3
-END,
-created_at DESC;
+    CASE
+        WHEN type = 'Placement' THEN 1
+        WHEN type = 'Result' THEN 2
+        WHEN type = 'Event' THEN 3
+        ELSE 4
+    END,
+    created_at DESC;
 ```
 
 ---
 
-# 🔍 Query Explanation
+# Query Explanation
 
 The query performs the following operations:
 
-1. Retrieves notifications for a specific student.
-2. Assigns a numeric priority using the `CASE` expression.
-3. Sorts notifications based on priority.
-4. Orders notifications of the same priority by **most recent first** using `created_at DESC`.
+1. Retrieves notifications belonging to the specified student.
+2. Assigns a priority value to each notification using the `CASE` expression.
+3. Sorts notifications by priority in ascending order.
+4. Within each priority level, orders notifications by creation time in descending order so that the newest notifications appear first.
 
-This ensures that users always see the most important and latest notifications at the top of their inbox.
-
----
-
-# 🚀 Why Use Priority-Based Sorting?
-
-Priority-based sorting enhances the notification experience by presenting critical updates before less important ones.
-
-### Advantages
-
-* ⭐ Important notifications appear first.
-* 💼 Placement opportunities are highly visible.
-* 📚 Academic result updates receive higher priority.
-* 📅 Event announcements remain accessible without overshadowing critical updates.
-* ⏱️ Recent notifications are displayed first within each priority level.
+This ensures users always see the most relevant and recent information.
 
 ---
 
-# ⚙️ Performance Considerations
+# Performance Considerations
 
-To maintain efficient query performance as the notification table grows:
+While the `CASE` expression provides a simple solution, evaluating it for every row can become less efficient as the notification table grows.
 
-* Create indexes on frequently filtered columns such as `student_id`.
-* Consider indexing `type` if priority filtering is common.
-* Use pagination (`LIMIT` and `OFFSET`) for large datasets.
-* Retrieve only required columns instead of using `SELECT *` in production environments.
+For large-scale systems, the following optimizations are recommended:
 
-### Recommended Composite Index
+* Add a dedicated `priority` column to the `notifications` table.
+* Assign the priority value when the notification is created.
+* Create a composite index on frequently sorted columns.
 
-```sql id="m4tqf8"
-CREATE INDEX idx_notifications_student_type_created
-ON notifications(student_id, type, created_at);
+Example:
+
+```sql id="8v8b4z"
+CREATE INDEX idx_notifications_student_priority_created
+ON notifications(student_id, priority, created_at DESC);
 ```
 
-This index helps improve filtering and sorting performance for priority-based notification retrieval.
+With this approach, the query becomes simpler and allows the database optimizer to use the index more effectively.
+
+```sql id="mspgxu"
+SELECT
+    id,
+    title,
+    message,
+    type,
+    is_read,
+    created_at
+FROM notifications
+WHERE student_id = ?
+ORDER BY priority ASC, created_at DESC;
+```
 
 ---
 
-# 📊 Benefits
+# Benefits of Priority-Based Sorting
 
-| Feature                  | Benefit                                                       |
-| ------------------------ | ------------------------------------------------------------- |
-| Priority Sorting         | Displays the most important notifications first               |
-| CASE Expression          | Implements custom priority ordering                           |
-| Recent First             | Shows the latest notifications within each priority level     |
-| Better Visibility        | Ensures placement and result notifications are not overlooked |
-| Improved User Experience | Makes the inbox more organized and relevant                   |
+* Ensures critical notifications appear first.
+* Improves visibility of placement opportunities.
+* Prevents important updates from being overlooked.
+* Maintains chronological order within each priority category.
+* Provides a more intuitive and user-friendly notification experience.
 
 ---
 
-# 🎯 Conclusion
+# High-Level Workflow
 
-Implementing a **Priority Inbox** significantly improves the usability of the Campus Notification System.
+```text id="t9ekvc"
+Notifications
+      │
+      ▼
+Filter by Student
+      │
+      ▼
+Assign Priority
+      │
+      ▼
+Sort by Priority
+      │
+      ▼
+Sort by Creation Time
+      │
+      ▼
+Display to User
+```
 
-By combining **priority-based sorting** with **reverse chronological ordering**, users receive the most relevant notifications first while still seeing the latest updates within each category. This approach keeps the query simple, efficient, and scalable, providing a better overall notification experience.
+---
+
+# Conclusion
+
+Implementing a **Priority Inbox** enhances the notification experience by presenting the most important information first while preserving the recency of notifications within each category. Although the `CASE`-based query is suitable for small and medium-sized applications, storing a dedicated **priority** field and indexing it provides better performance and scalability for large-scale systems with millions of notifications.
