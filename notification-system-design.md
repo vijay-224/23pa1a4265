@@ -349,8 +349,8 @@ Stores basic student information.
 ```json
 {
   "_id": ObjectId,
-  "name": "Santhosh",
-  "email": "santhosh@example.com",
+  "name": "Vijay",
+  "email": "vijay@example.com",
   "createdAt": ISODate("2026-04-22T17:51:18Z")
 }
 ```
